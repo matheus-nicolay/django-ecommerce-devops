@@ -85,7 +85,7 @@ resource "aws_instance" "kubernetes_master01" {
   count = 2
   key_name = "kubernetes_cluster_key" # Insira o nome da chave criada antes.
   subnet_id = aws_subnet.Public_subnet.id
-  vpc_security_group_ids = [aws_security_group.permitir_ssh_http_nodes.id]
+  vpc_security_group_ids = [aws_security_group.master_security_group.id]
   associate_public_ip_address = true
 
   tags = {
@@ -95,24 +95,24 @@ resource "aws_instance" "kubernetes_master01" {
   connection {
     type     = "ssh"
     user     = "ubuntu"
-    private_key = file("../kubernetes_cluster_key.pem")
+    private_key = file("kubernetes_cluster_key.pem")
     host     = self.public_ip
   }
 
   provisioner "remote-exec" {
     inline = [
-      "${count.index} == 0 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--tls-san ${self.public_ip}' sh -",
+      "curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--tls-san ${self.public_ip}' sh -",
       "sudo hostnamectl set-hostname node-${self.private_ip}",
-      "${count.index} == 0 ? export KUBECONFIG=/etc/rancher/k3s/k3s",
+      "export KUBECONFIG=/etc/rancher/k3s/k3s",
       #"${count.index} == 1 ? curl -sfL https://get.k3s.io | K3S_URL=${var.k3s_url} K3S_TOKEN=${var.k3s_token} sh -"
     ]
   }
 
   provisioner "local-exec" {
     command = <<EOT
-      ssh -i ../kubernetes_cluster_key.pem ubuntu@${aws_instance.kubernetes_master01.public_ip} \
-        "echo k3s_url=https://${aws_instance.kubernetes_master01.private_ip}:6443 && \
-         echo k3s_token=\$(cat /var/lib/rancher/k3s/server/node-token)" \
+      ssh -o StrictHostKeyChecking=no -i kubernetes_cluster_key.pem ubuntu@${aws_instance.kubernetes_master01.0.public_ip} \
+        "echo k3s_url=https://${aws_instance.kubernetes_master01.0.private_ip}:6443 && \
+         echo k3s_token=`cat /var/lib/rancher/k3s/server/node-token`" \
         > ./k3s_variables.auto.tfvars
     EOT
   }
