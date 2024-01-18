@@ -20,6 +20,7 @@ jobs:
       uses: docker/build-push-action@v5.0.0
       with:
         context: ./netflix-clone-react-app
+        file: netflix-clone-react-app/Dockerfile
         push: true
         tags: |
           matheusnicolay/netflix-clone-react-app:${{ github.run_number }}
