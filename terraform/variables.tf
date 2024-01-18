@@ -1,35 +1,15 @@
-variable "instanceTenancy" {
-    default = "default"
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
+variable "region" {
+  description = "AWS region"
+  type        = string
 }
-variable "dnsSupport" {
-    default = true
+
+variable "access_key" {
+  type        = string
 }
-variable "dnsHostNames" {
-    default = true
-}
-variable "vpcCIDRblock" {
-    default = "10.0.0.0/16"
-}
-variable "publicsCIDRblock" {
-    default = "10.0.1.0/24"
-}
-variable "privatesCIDRblock" {
-    default = "10.0.2.0/24"
-}
-variable "publicdestCIDRblock" {
-    default = "0.0.0.0/0"
-}
-variable "localdestCIDRblock" {
-    default = "10.0.0.0/16"
-}
-variable "ingressCIDRblock" {
-    type = list
-    default = [ "0.0.0.0/0" ]
-}
-variable "egressCIDRblock" {
-    type = list
-    default = [ "0.0.0.0/0" ]
-}
-variable "mapPublicIP" {
-    default = true
+
+variable "secret_key" {
+  type        = string
 }

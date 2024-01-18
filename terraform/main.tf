@@ -1,216 +1,145 @@
-variable "region" {
-  type = string
-}
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
 
-variable "access_key" {
-  type = string
-}
 
-variable "secret_key" {
-  type = string
-}
-
-provider "aws" {
-  region      = var.region 
-  access_key  = var.access_key 
-  secret_key  = var.secret_key 
-}
-
-resource "aws_vpc" "VPC_cluster_kubernetes" {
-  cidr_block           = var.vpcCIDRblock
-  instance_tenancy     = var.instanceTenancy 
-  tags = {
-      Name = "VPC Cluster Kubernetes"
-  }
-} 
-
-resource "aws_subnet" "Public_subnet" {
-  vpc_id                  = aws_vpc.VPC_cluster_kubernetes.id
-  cidr_block              = var.publicsCIDRblock
-  tags = {
-    Name = "Public subnet"
-  }
-}
-
-resource "aws_internet_gateway" "IGW_teste" {
- vpc_id = aws_vpc.VPC_cluster_kubernetes.id
- tags = {
-        Name = "Internet gateway teste"
-  }
-} 
-
-resource "aws_route_table" "Public_RT" {
- vpc_id = aws_vpc.VPC_cluster_kubernetes.id
-
- route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.IGW_teste.id
-  }
-
- tags = {
-        Name = "Public Route table"
-  }
-} 
-
-resource "aws_route" "internet_access" {
-  route_table_id         = aws_route_table.Public_RT.id
-  destination_cidr_block = var.publicdestCIDRblock
-  gateway_id             = aws_internet_gateway.IGW_teste.id
-}
-
-resource "aws_route_table_association" "Public_association" {
-  subnet_id      = aws_subnet.Public_subnet.id
-  route_table_id = aws_route_table.Public_RT.id
-}
-
-data "aws_ami" "ubuntu" {
-  most_recent = true
-
+# Filter out local zones, which are not currently supported 
+# with managed node groups
+data "aws_availability_zones" "available" {
   filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+    name   = "opt-in-status"
+    values = ["opt-in-not-required"]
   }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["099720109477"] # Canonical
 }
 
-resource "aws_instance" "kubernetes_master01" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.medium"
-  count = 2
-  key_name = "kubernetes_cluster_key" # Insira o nome da chave criada antes.
-  subnet_id = aws_subnet.Public_subnet.id
-  vpc_security_group_ids = [aws_security_group.master_security_group.id]
-  associate_public_ip_address = true
+locals {
+  cluster_name = "eks-netflixclone"
+}
 
-  tags = {
-    Name = "node-${count.index}"
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+}
+
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "5.0.0"
+
+  name = "eks-netflixclone-vpc"
+
+  cidr = "10.0.0.0/16"
+  azs  = slice(data.aws_availability_zones.available.names, 0, 3)
+
+  private_subnets = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  public_subnets  = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+
+  enable_nat_gateway   = true
+  single_nat_gateway   = true
+  enable_dns_hostnames = true
+
+  public_subnet_tags = {
+    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
+    "kubernetes.io/role/elb"                      = 1
   }
 
-  connection {
-    type     = "ssh"
-    user     = "ubuntu"
-    private_key = file("kubernetes_cluster_key.pem")
-    host     = self.public_ip
+  private_subnet_tags = {
+    "kubernetes.io/cluster/${local.cluster_name}" = "shared"
+    "kubernetes.io/role/internal-elb"             = 1
+  }
+}
+
+module "eks" {
+  source  = "terraform-aws-modules/eks/aws"
+  version = "19.15.3"
+
+  cluster_name    = local.cluster_name
+  cluster_version = "1.27"
+
+  vpc_id                         = module.vpc.vpc_id
+  subnet_ids                     = module.vpc.private_subnets
+  cluster_endpoint_public_access = true
+
+  eks_managed_node_group_defaults = {
+    ami_type = "AL2_x86_64"
+
   }
 
-  provisioner "remote-exec" {
-    inline = [
-      "curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--tls-san ${self.public_ip}' sh -",
-      "sudo hostnamectl set-hostname node-${self.private_ip}",
-      "export KUBECONFIG=/etc/rancher/k3s/k3s",
-      #"${count.index} == 1 ? curl -sfL https://get.k3s.io | K3S_URL=${var.k3s_url} K3S_TOKEN=${var.k3s_token} sh -"
+  eks_managed_node_groups = {
+    one = {
+      name = "node-group-1"
+
+      instance_types = ["t2.medium"]
+
+      min_size     = 1
+      max_size     = 20
+      desired_size = 1
+    }
+  }
+}
+
+data "aws_eks_cluster" "cluster" {
+  name = local.cluster_name
+  depends_on = [module.eks]
+}
+
+data "tls_certificate" "cluster" {
+ url = data.aws_eks_cluster.cluster.identity.0.oidc.0.issuer
+}
+
+resource "aws_iam_openid_connect_provider" "identity_provider" {
+ client_id_list = ["sts.amazonaws.com"]
+ thumbprint_list = [data.tls_certificate.cluster.certificates[0].sha1_fingerprint]
+ url = data.aws_eks_cluster.cluster.identity.0.oidc.0.issuer
+}
+
+resource "aws_iam_policy" "AmazonEKSClusterAutoscalerPolicy" {
+  name        = "AmazonEKSClusterAutoscalerPolicy"
+  path        = "/"
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+          "Action": [
+              "autoscaling:DescribeAutoScalingGroups",
+              "autoscaling:DescribeAutoScalingInstances",
+              "autoscaling:DescribeLaunchConfigurations",
+              "autoscaling:DescribeTags",
+              "autoscaling:SetDesiredCapacity",
+              "autoscaling:TerminateInstanceInAutoScalingGroup",
+              "ec2:DescribeLaunchTemplateVersions"
+          ],
+          "Resource": "*",
+          "Effect": "Allow"
+      }
     ]
-  }
-
-  provisioner "local-exec" {
-    command = <<EOT
-      ssh -o StrictHostKeyChecking=no -i kubernetes_cluster_key.pem ubuntu@${aws_instance.kubernetes_master01.0.public_ip} \
-        "echo k3s_url=https://${aws_instance.kubernetes_master01.0.private_ip}:6443 && \
-         echo k3s_token=`cat /var/lib/rancher/k3s/server/node-token`" \
-        > ./k3s_variables.auto.tfvars
-    EOT
-  }
+  })
 }
 
-resource "aws_security_group" "master_security_group" {
-  name        = "master_security_group"
-  vpc_id      = aws_vpc.VPC_cluster_kubernetes.id
+# https://aws.amazon.com/blogs/containers/amazon-ebs-csi-driver-is-now-generally-available-in-amazon-eks-add-ons/ 
+data "aws_iam_policy" "ebs_csi_policy" {
+  arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+}
 
-    ingress {
-    description = "SSH to EC2"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+module "irsa-ebs-csi" {
+  source  = "terraform-aws-modules/iam/aws//modules/iam-assumable-role-with-oidc"
+  version = "4.7.0"
 
-  ingress {
-    description = "HTTP to EC2"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  create_role                   = true
+  role_name                     = "AmazonEKSTFEBSCSIRole-${module.eks.cluster_name}"
+  provider_url                  = module.eks.oidc_provider
+  role_policy_arns              = [data.aws_iam_policy.ebs_csi_policy.arn]
+  oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
+}
 
-  ingress {
-    description = "HTTPS to EC2"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "K3S to EC2"
-    from_port   = 6443
-    to_port     = 6443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "K3S to EC2-1"
-    from_port   = 8472
-    to_port     = 8472
-    protocol    = "udp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "Kubelet metrics"
-    from_port   = 10250
-    to_port     = 10250
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "Kubelet2"
-    from_port   = 16443
-    to_port     = 16443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "Flannel Wireguard "
-    from_port   = 51820
-    to_port     = 51820
-    protocol    = "udp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "all traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
+resource "aws_eks_addon" "ebs-csi" {
+  cluster_name             = module.eks.cluster_name
+  addon_name               = "aws-ebs-csi-driver"
+  addon_version            = "v1.20.0-eksbuild.1"
+  service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
   tags = {
-    Name = "master_security_group"
+    "eks_addon" = "ebs-csi"
+    "terraform" = "true"
   }
-
-}
-
-data "aws_instances" "k3s_workers" {
-  instance_state_names = ["running"]
-}
-
-output "instances" {
-  value = "${data.aws_instances.k3s_workers.ids}"
 }
