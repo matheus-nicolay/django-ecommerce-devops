@@ -26,8 +26,8 @@ jobs:
         file: ./netflix-clone-react-app/Dockerfile
         push: true
         tags: |
-          matheusnicolay/kube-news:${{ github.run_number }}
-          matheusnicolay/kube-news:latest
+          matheusnicolay/netflix-clone-react-app:${{ github.run_number }}
+          matheusnicolay/netflix-clone-react-app:latest
 
   CD:
      runs-on: ubuntu-latest
@@ -51,4 +51,4 @@ jobs:
           manifests: |
             ./kubernetes/
           images: |
-            matheusnicolay/kube-news:${{ github.run_number }}
+            matheusnicolay/netflix-clone-react-app:${{ github.run_number }}
