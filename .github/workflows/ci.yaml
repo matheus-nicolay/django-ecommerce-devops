@@ -16,10 +16,16 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
+    #- name: Build and Push Docker Image
+    #  run: |
+    #    docker buildx create --use
+    #    docker buildx build --platform linux/amd64,linux/arm64 -t matheusnicolay/netflix-clone-react-app:latest .
+    #    docker push matheusnicolay/netflix-clone-react-app:latest
+
     - name: Build and push Docker images
       uses: docker/build-push-action@v5.0.0
       with:
-        context: ./netflix-clone-react-app
+        #context: .
         file: netflix-clone-react-app/Dockerfile
         push: true
         tags: |
