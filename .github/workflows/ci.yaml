@@ -68,8 +68,8 @@ jobs:
           EXTERNAL_IP=$(kubectl -n default get service netflix-app -o jsonpath='{.status.loadBalancer.ingress[0].hostname}') 
           echo "EXTERNAL_IP=${EXTERNAL_IP}" >> $GITHUB_ENV
 
-      - name: Set env
-        run: echo "LOADBALANCER_CNAME=$(kubectl -n default get service netflix-app | awk 'NR>1 {print $4}')" >> $GITHUB_ENV
+      #- name: Set env
+      # run: echo "LOADBALANCER_CNAME=$(kubectl -n default get service netflix-app | awk 'NR>1 {print $4}')" >> $GITHUB_ENV
         
       - name: Criar entrada DNS cloudflare
         uses: rez0n/create-dns-record@v2.1
