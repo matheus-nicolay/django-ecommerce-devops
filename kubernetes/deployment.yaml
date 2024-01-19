@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: netflix-app
-        image: matheus-nicolay/netflix-clone-react-app:latest
+        image: matheusnicolay/netflix-clone-react-app:latest
         resources:
           limits:
             memory: "128Mi"

@@ -47,5 +47,7 @@ jobs:
         with:
           manifests: |
             ./kubernetes/
+            https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.5.2/deploy/static/provider/cloud/deploy.yaml
+            https://github.com/cert-manager/cert-manager/releases/download/v1.13.3/cert-manager.yaml
           images: |
             matheusnicolay/netflix-clone-react-app:${{ github.run_number }}
