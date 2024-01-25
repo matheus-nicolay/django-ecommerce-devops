@@ -75,7 +75,6 @@ jobs:
         with:
           manifests: |
             ./kubernetes/cluster-issuer.yaml
-            https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.5.2/deploy/static/provider/cloud/deploy.yaml
             ./kubernetes/deployment.yaml
             ./kubernetes/service.yaml
           images: |
