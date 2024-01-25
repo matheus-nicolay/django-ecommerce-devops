@@ -46,7 +46,7 @@ jobs:
       - name: Deploy ClusterIssuer
         uses: Azure/k8s-deploy@v4.9
         with:
-          namespace: 'cert-manager'
+          #namespace: 'cert-manager'
           manifests: |
             ./kubernetes/cert-manager.yaml
           images: |
