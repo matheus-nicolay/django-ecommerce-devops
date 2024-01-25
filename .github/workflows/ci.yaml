@@ -61,6 +61,15 @@ jobs:
           images: |
             matheusnicolay/netflix-clone-react-app:${{ github.run_number }}
 
+      - name: Deploy Nginx Ingress Controller
+        uses: Azure/k8s-deploy@v4.9
+        with:
+          namespace: 'ingress-nginx'
+          manifests: |
+            https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.5.2/deploy/static/provider/cloud/deploy.yaml
+          images: |
+            matheusnicolay/netflix-clone-react-app:${{ github.run_number }}
+
       - name: Deploy Application Kubernetes cluster
         uses: Azure/k8s-deploy@v4.9
         with:
