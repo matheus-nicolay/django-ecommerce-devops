@@ -37,5 +37,6 @@ vi provider.auto.tfvars
 #secret_key  = "secret"
 ```
 ```
+terraform init
 terraform apply
 ```
