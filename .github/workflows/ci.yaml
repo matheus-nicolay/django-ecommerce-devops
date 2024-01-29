@@ -43,33 +43,6 @@ jobs:
       - name: Configurar o kubeConfig
         run: aws eks update-kubeconfig --name eks-netflixclone --region ${{ secrets.AWS_REGION }}
 
-      - name: Deploy ClusterIssuer
-        uses: Azure/k8s-deploy@v4.9
-        with:
-          namespace: 'cert-manager'
-          manifests: |
-            ./kubernetes/cert-manager.yaml
-          images: |
-            matheusnicolay/netflix-clone-react-app:${{ github.run_number }}
-            
-      - name: Deploy ClusterIssuer in kube-system
-        uses: Azure/k8s-deploy@v4.9
-        with:
-          namespace: 'kube-system'
-          manifests: |
-            ./kubernetes/cert-manager-kube.yaml
-          images: |
-            matheusnicolay/netflix-clone-react-app:${{ github.run_number }}
-
-      - name: Deploy Nginx Ingress Controller
-        uses: Azure/k8s-deploy@v4.9
-        with:
-          namespace: 'ingress-nginx'
-          manifests: |
-            https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.5.2/deploy/static/provider/cloud/deploy.yaml
-          images: |
-            matheusnicolay/netflix-clone-react-app:${{ github.run_number }}
-
       - name: Deploy Application Kubernetes cluster
         uses: Azure/k8s-deploy@v4.9
         with:

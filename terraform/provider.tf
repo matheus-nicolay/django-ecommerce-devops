@@ -3,3 +3,14 @@ provider "aws" {
   access_key  = var.access_key
   secret_key  = var.secret_key
 }
+
+terraform {
+  required_version = ">= 0.13"
+
+  required_providers {
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = ">= 1.7.0"
+    }
+  }
+}

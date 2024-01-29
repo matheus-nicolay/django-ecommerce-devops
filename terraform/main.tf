@@ -143,3 +143,44 @@ resource "aws_eks_addon" "ebs-csi" {
     "terraform" = "true"
   }
 }
+
+data "aws_eks_cluster_auth" "cluster_auth" {
+  name = local.cluster_name
+}
+
+provider "kubectl" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  load_config_file       = false
+  token                  = data.aws_eks_cluster_auth.cluster_auth.token
+}
+
+data "kubectl_path_documents" "docs" {
+    pattern = "./manifests/*.yaml"
+}
+
+resource "kubectl_manifest" "namespace-cert" {
+    yaml_body = <<YAML
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager
+YAML
+}
+
+resource "kubectl_manifest" "namespace-ingress" {
+    yaml_body = <<YAML
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app.kubernetes.io/instance: ingress-nginx
+    app.kubernetes.io/name: ingress-nginx
+  name: ingress-nginx
+YAML
+}
+
+resource "kubectl_manifest" "test1" {
+    for_each  = toset(data.kubectl_path_documents.docs.documents)
+    yaml_body = each.value
+}
