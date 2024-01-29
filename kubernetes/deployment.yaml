@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: netflix-app
+  name: django-ecommerce
 spec:
   selector:
     matchLabels:
-      app: netflix-app
+      app:  django-ecommerce
   template:
     metadata:
       labels:
-        app: netflix-app
+        app:  django-ecommerce
     spec:
       containers:
-      - name: netflix-app
+      - name:  django-ecommerce
         image: matheusnicolay/netflix-clone-react-app:latest
         resources:
           limits:

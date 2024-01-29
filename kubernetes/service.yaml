@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: netflix-app
+  name: django-ecommerce
 spec:
   selector:
-    app: netflix-app
+    app: django-ecommerce
   ports:
   - port: 80
-    targetPort: 80
+    targetPort: 8000
