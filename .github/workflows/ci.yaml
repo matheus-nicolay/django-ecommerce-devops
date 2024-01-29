@@ -68,7 +68,7 @@ jobs:
         uses: rez0n/create-dns-record@v2.1
         with:
           type: "CNAME"
-          name: "netflixclone.nmatheus.cloud"
+          name: "nclone.nmatheus.cloud"
           content: ${{ env.EXTERNAL_IP }}
           ttl: 1
           proxied: true
