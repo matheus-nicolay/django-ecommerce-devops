@@ -19,12 +19,12 @@ jobs:
     - name: Build and push Docker images
       uses: docker/build-push-action@v5.0.0
       with:
-        context: ./netflix-clone-react-app
-        file: netflix-clone-react-app/Dockerfile
+        context: ./django-ecommerce
+        file: django-ecommerce/Dockerfile
         push: true
         tags: |
-          matheusnicolay/netflix-clone-react-app:${{ github.run_number }}
-          matheusnicolay/netflix-clone-react-app:latest
+          matheusnicolay/django-ecommerce:${{ github.run_number }}
+          matheusnicolay/django-ecommerce:latest
 
   CD:
      runs-on: ubuntu-latest
@@ -51,7 +51,7 @@ jobs:
             ./kubernetes/deployment.yaml
             ./kubernetes/service.yaml
           images: |
-            matheusnicolay/netflix-clone-react-app:${{ github.run_number }}
+            matheusnicolay/django-ecommerce:${{ github.run_number }}
             
       - name: Obter EXTERNAL-IP/Cname do Ingress
         id: get-external-ip
@@ -68,7 +68,7 @@ jobs:
         uses: rez0n/create-dns-record@v2.1
         with:
           type: "CNAME"
-          name: "nclone.nmatheus.cloud"
+          name: "ecommerce.nmatheus.cloud"
           content: ${{ env.EXTERNAL_IP }}
           ttl: 1
           proxied: true
@@ -81,6 +81,6 @@ jobs:
           manifests: |
             ./kubernetes/ingress.yaml
           images: |
-            matheusnicolay/netflix-clone-react-app:${{ github.run_number }}
+            matheusnicolay/django-ecommerce:${{ github.run_number }}
 
       

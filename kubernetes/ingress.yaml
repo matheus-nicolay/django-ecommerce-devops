@@ -9,10 +9,10 @@ metadata:
 spec:
   tls:
     - hosts:
-      - nclone.nmatheus.cloud
+      - ecommerce.nmatheus.cloud
       secretName: django-ecommerce-tls
   rules:
-  - host: nclone.nmatheus.cloud
+  - host: ecommerce.nmatheus.cloud
     http:
         paths:
         - pathType: Prefix

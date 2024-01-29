@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name:  django-ecommerce
-        image: matheusnicolay/netflix-clone-react-app:latest
+        image: matheusnicolay/django-ecommerce:latest
         resources:
           limits:
             memory: "128Mi"
