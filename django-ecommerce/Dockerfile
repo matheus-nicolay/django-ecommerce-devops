@@ -6,6 +6,7 @@ ENV PYTHONUNBUFFERED 1
 
 # Install dependencies
 RUN pip install django Pillow
+RUN python3 app/babyshop_app/manage.py migrate
 
 # Copy the django project
 COPY . /app/

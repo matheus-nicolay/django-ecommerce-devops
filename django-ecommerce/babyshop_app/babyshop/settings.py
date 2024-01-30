@@ -33,6 +33,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["ecommerce.nmatheus.cloud"]
 
+CSRF_TRUSTED_ORIGINS = ['https://ecommerce.nmatheus.cloud']
 
 # Application definition
 
