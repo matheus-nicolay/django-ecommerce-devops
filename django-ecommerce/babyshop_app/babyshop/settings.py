@@ -37,9 +37,9 @@ ALLOWED_HOSTS = ["ecommerce.nmatheus.cloud"]
 # Application definition
 
 INSTALLED_APPS = [
-    'babyshop',
-    'products',
-    'users',
+    #'babyshop',
+    #'products',
+    #'users',
     'users.apps.UsersConfig',
     'django.contrib.admin',
     'django.contrib.auth',
