@@ -6,13 +6,16 @@ ENV PYTHONUNBUFFERED 1
 
 # Install dependencies
 RUN pip install django Pillow
-RUN python3 app/babyshop_app/manage.py migrate
 
 # Copy the django project
 COPY . /app/
 
 # Set the current working directory
 WORKDIR /app
+
+#Run Migration
+RUN python3 app/babyshop_app/manage.py makemigrations
+RUN python3 app/babyshop_app/manage.py migrate
 
 # Expose the necessary port for action
 EXPOSE 8000
