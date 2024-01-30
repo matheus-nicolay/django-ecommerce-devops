@@ -14,8 +14,8 @@ COPY . /app/
 WORKDIR /app
 
 #Run Migration
-RUN python3 app/babyshop_app/manage.py makemigrations
-RUN python3 app/babyshop_app/manage.py migrate
+RUN python3 /app/babyshop_app/manage.py makemigrations
+RUN python3 /app/babyshop_app/manage.py migrate
 
 # Expose the necessary port for action
 EXPOSE 8000
