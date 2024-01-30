@@ -3,8 +3,8 @@
       <div class="row ml-2 mt-3">
         <div class="col-2">
           <div class="list-group">
-            <a href="http://127.0.0.1:8000/" class="list-group-item list-group-item-action active" aria-current="true">
-              Kategoriler
+            <a href="/" class="list-group-item list-group-item-action active" aria-current="true">
+              Categoria
             </a>
             {% for category in categories %}
             <a href="{% url 'products_by_category' category.slug %}" class="list-group-item list-group-item-action">{{category.name}}</a>
