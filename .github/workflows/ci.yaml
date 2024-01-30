@@ -71,7 +71,7 @@ jobs:
           name: "ecommerce.nmatheus.cloud"
           content: ${{ env.EXTERNAL_IP }}
           ttl: 1
-          proxied: true
+          proxied: false
           token: ${{ secrets.CLOUDFLARE_TOKEN }}
           zone: ${{ secrets.CLOUDFLARE_ZONE }}
 
