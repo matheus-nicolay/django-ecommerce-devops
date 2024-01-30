@@ -16,6 +16,11 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+SETTINGS_PATH = os.path.normpath(os.path.dirname(__file__))
+
+TEMPLATE_DIRS = (
+    os.path.join(SETTINGS_PATH, 'templates'),
+)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
@@ -32,6 +37,9 @@ ALLOWED_HOSTS = ["ecommerce.nmatheus.cloud"]
 # Application definition
 
 INSTALLED_APPS = [
+    'babyshop',
+    'products',
+    'users',
     'users.apps.UsersConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -57,7 +65,9 @@ ROOT_URLCONF = 'babyshop.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ["templates"],
+        'DIRS': ["templates",
+                 os.path.join(BASE_DIR, 'templates')
+                ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
