@@ -1,12 +1,12 @@
 # Netflix Clone DevOps
 
-> Projeto de CI/CD completo para disponibilização de uma aplicação JS (Clone da Netflix) por meio de um cluster Kubernetes no EKS.
+> Projeto de CI/CD completo para disponibilização de uma aplicação Django (ecommerce) por meio de um cluster Kubernetes no EKS.
 
 ## 💻 Funcionalidades
 
 - Manifestos terraform para deploy do cluster Amazon EKS (`./terraform`)
-  - Instalação do Cert-Manager e NGINX Ingress COntroller
-- Aplicação completa em JS (`./netflix-clone-react-app`)
+  - Instalação do Cert-Manager e NGINX Ingress Controller
+- Aplicação completa em JS (`./django-ecommerce`)
 - Manifestos Kubernetes Ingress, Deployment e Service (`./kubernetes`)
 - Pipeline CI/CD Github Actions
   - Aplicação dos Manifestos Kubernetes
@@ -25,7 +25,7 @@ Antes de começar, verifique se você atendeu aos seguintes requisitos:
 Para instalar o projeto, siga estas etapas:
 
 ```
-git clone https://github.com/matheus-nicolay/netflix-clone-devops
+git clone https://github.com/matheus-nicolay/django-ecommerce-devops
 cd terraform
 ```
 ```bash
