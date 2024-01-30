@@ -23,7 +23,7 @@
                 <h5 class="card-title"> <a href="{% url 'product_detail' product.category.slug product.id %}">{{product.name}}</a></h5>
                 <div class="mb-1 text-muted">{{product.price}} &#8378;</div>
                 <p class="card-text">{{product.description | truncatechars:80}}</p>
-                <a href="{% url 'product_detail' product.category.slug product.id %}" class="btn btn-primary">Detayına Git</a>
+                <a href="{% url 'product_detail' product.category.slug product.id %}" class="btn btn-primary">Detalhes</a>
               </div>
             </div>
             {% endfor %}
