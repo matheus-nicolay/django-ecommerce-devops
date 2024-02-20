@@ -1,4 +1,4 @@
-FROM python:3.12.2
+FROM cgr.dev/chainguard/python:latest
 
 # Setting environment variables. (Good Practice)
 ENV PYTHONDONTWRITEBYTECODE 1
