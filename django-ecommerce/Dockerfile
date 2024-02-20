@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:3.12.2
 
 # Setting environment variables. (Good Practice)
 ENV PYTHONDONTWRITEBYTECODE 1
