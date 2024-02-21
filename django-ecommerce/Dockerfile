@@ -1,4 +1,4 @@
-FROM cgr.dev/chainguard/python:latest
+FROM python:latest
 
 # Setting environment variables. (Good Practice)
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -6,6 +6,8 @@ ENV PYTHONUNBUFFERED 1
 SHELL ["/bin/bash", "-c"]
 
 # Install dependencies
+RUN apt update -y
+RUN apt install --upgrade libpq-dev -y
 RUN pip install django Pillow
 
 # Copy the django project
