@@ -3,6 +3,7 @@ FROM cgr.dev/chainguard/python:latest
 # Setting environment variables. (Good Practice)
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+SHELL ["/bin/bash", "-c"]
 
 # Install dependencies
 RUN pip install django Pillow
