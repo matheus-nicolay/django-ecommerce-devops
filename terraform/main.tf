@@ -184,3 +184,30 @@ resource "kubectl_manifest" "test1" {
     for_each  = toset(data.kubectl_path_documents.docs.documents)
     yaml_body = each.value
 }
+
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  token                  = data.aws_eks_cluster_auth.cluster_auth.token
+}
+
+provider "cloudflare" {
+  api_token = var.cloudflare_api_token
+}
+
+data "kubernetes_ingress" "nginx" {
+  metadata {
+    name = "ingress-nginx-controller"
+    namespace = "ingress-nginx"
+  }
+}
+
+resource "cloudflare_record" "sonarqube_record" {
+  zone_id = var.cloudflare_zone_id
+  name    = "sonarqube"
+  value   = [data.kubernetes_ingress.nginx.status.0.load_balancer.0.ingress.0.hostname]
+  type    = "CNAME"
+  ttl     = 3600
+}
+
+
