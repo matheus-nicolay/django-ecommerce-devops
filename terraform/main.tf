@@ -160,7 +160,7 @@ data "kubectl_path_documents" "docs" {
 }
 
 resource "kubectl_manifest" "namespace-cert" {
-    yaml_body = <<YAML
+yaml_body = <<YAML
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -169,7 +169,7 @@ YAML
 }
 
 resource "kubectl_manifest" "namespace-ingress" {
-    yaml_body = <<YAML
+yaml_body = <<YAML
 apiVersion: v1
 kind: Namespace
 metadata:
