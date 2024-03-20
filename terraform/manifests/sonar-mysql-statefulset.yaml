@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sonar-mysql-deployment
+  labels:
+    app: sonar-mysql
+spec:
+  replicas: 1
+  serviceName: sonar-mysql
+  selector:
+    matchLabels:
+      app: sonar-mysql
+  template:
+    metadata:
+      labels:
+        app: sonar-mysql
+    spec:
+      containers:
+      - name: sonar-mysql
+        image: mysql:5.7
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: password
+        - name: MYSQL_DATABASE
+          value: sonar
+        - name: MYSQL_USER
+          value: sonar
+        - name: MYSQL_PASSWORD
+          value: sonar
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi

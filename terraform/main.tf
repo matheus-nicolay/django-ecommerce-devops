@@ -12,7 +12,7 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  cluster_name = "eks-netflixclone"
+  cluster_name = "eks-djangoecommerce"
 }
 
 resource "random_string" "suffix" {
@@ -24,7 +24,7 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.0.0"
 
-  name = "eks-netflixclone-vpc"
+  name = "eks-djangoecommerce-vpc"
 
   cidr = "10.0.0.0/16"
   azs  = slice(data.aws_availability_zones.available.names, 0, 3)
@@ -70,7 +70,7 @@ module "eks" {
       instance_types = ["t2.medium"]
 
       min_size     = 1
-      max_size     = 20
+      max_size     = 5
       desired_size = 1
     }
   }
@@ -89,6 +89,10 @@ resource "aws_iam_openid_connect_provider" "identity_provider" {
  client_id_list = ["sts.amazonaws.com"]
  thumbprint_list = [data.tls_certificate.cluster.certificates[0].sha1_fingerprint]
  url = data.aws_eks_cluster.cluster.identity.0.oidc.0.issuer
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_iam_policy" "AmazonEKSClusterAutoscalerPolicy" {
@@ -115,6 +119,10 @@ resource "aws_iam_policy" "AmazonEKSClusterAutoscalerPolicy" {
       }
     ]
   })
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # https://aws.amazon.com/blogs/containers/amazon-ebs-csi-driver-is-now-generally-available-in-amazon-eks-add-ons/ 
@@ -180,9 +188,9 @@ metadata:
 YAML
 }
 
-resource "kubectl_manifest" "test1" {
-    for_each  = toset(data.kubectl_path_documents.docs.documents)
-    yaml_body = each.value
+resource "kubectl_manifest" "manifests" {
+  for_each  = toset(data.kubectl_path_documents.docs.documents)
+  yaml_body = each.value
 }
 
 provider "kubernetes" {
@@ -196,6 +204,7 @@ provider "cloudflare" {
 }
 
 data "kubernetes_ingress" "nginx" {
+  depends_on = [kubectl_manifest.manifests]
   metadata {
     name = "ingress-nginx-controller"
     namespace = "ingress-nginx"
@@ -205,9 +214,10 @@ data "kubernetes_ingress" "nginx" {
 resource "cloudflare_record" "sonarqube_record" {
   zone_id = var.cloudflare_zone_id
   name    = "sonarqube"
-  value   = [data.kubernetes_ingress.nginx.status.0.load_balancer.0.ingress.0.hostname]
+  value   = data.kubernetes_ingress.nginx.status.0.load_balancer.0.ingress.0.hostname
   type    = "CNAME"
   ttl     = 3600
+  proxied = false
 }
 
 
