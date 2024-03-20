@@ -2,4 +2,3 @@ terraform/kubernetes_cluster_key.pam
 terraform/.terraform*
 terraform/terraform.tfstate
 terraform/provider.auto.tfvars
-terraform/k3s_variables.auto.tfvars
