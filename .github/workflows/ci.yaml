@@ -81,7 +81,7 @@ jobs:
         run: echo ${{ env.EXTERNAL_IP }}
       
       - name: Criar entrada DNS cloudflare
-        uses: rez0n/create-dns-record@v2.1
+        uses: kriasoft/create-dns-record@v1
         with:
           type: "CNAME"
           name: "ecommerce.nmatheus.cloud"
