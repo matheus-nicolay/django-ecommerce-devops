@@ -57,7 +57,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
           
       - name: Configurar o kubeConfig
-        run: aws eks update-kubeconfig --name eks-netflixclone --region ${{ secrets.AWS_REGION }}
+        run: aws eks update-kubeconfig --name eks-djangoecommerce --region ${{ secrets.AWS_REGION }}
 
       - name: Deploy Application Kubernetes cluster
         uses: Azure/k8s-deploy@v4.9
